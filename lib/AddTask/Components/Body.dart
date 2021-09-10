@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:todo/Helpers/DatabaseHelpers.dart';
 import 'package:todo/Models/taskmodel.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddTask extends StatefulWidget {
   static String routeName = '/addTask';
@@ -108,6 +109,7 @@ class _AddTaskState extends State<AddTask> {
 
   @override
   Widget build(BuildContext context) {
+    CollectionReference tasks = FirebaseFirestore.instance.collection('tasks');
     double windowHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
@@ -159,6 +161,9 @@ class _AddTaskState extends State<AddTask> {
                             : null,
                         onSaved: (input) => _title = input!,
                         initialValue: _title,
+                        onChanged: (value) {
+                          _title = value;
+                        },
                       ),
                       SizedBox(
                         height: windowHeight * 0.03,
@@ -179,6 +184,9 @@ class _AddTaskState extends State<AddTask> {
                             ? 'Please Enter a Task Description'
                             : null,
                         onSaved: (input) => _desc = input!,
+                        onChanged: (value) {
+                          _desc = value;
+                        },
                         initialValue: _desc,
                       ),
                       SizedBox(
@@ -189,6 +197,9 @@ class _AddTaskState extends State<AddTask> {
                         controller: _dateController,
                         onTap: _handleDatePicker,
                         style: TextStyle(fontSize: 18),
+                        onChanged: (value) {
+                          _date = value as DateTime;
+                        },
                         decoration: InputDecoration(
                           labelText: 'Date',
                           labelStyle: TextStyle(fontSize: 18),
@@ -250,6 +261,13 @@ class _AddTaskState extends State<AddTask> {
                       ),
                       GestureDetector(
                         onTap: () async {
+                          await tasks.add({
+                            'Title': _title,
+                            'Description': _desc,
+                            'Priority': _priority,
+                            'Date': _dateController.text,
+                          }).then(
+                              (value) => print('Task Added: $_title, $_desc'));
                           await _submit();
                         },
                         child: Container(
@@ -304,15 +322,6 @@ class _AddTaskState extends State<AddTask> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Future notificationSelected(String? payload) async {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: Text("Notified"),
       ),
     );
   }
