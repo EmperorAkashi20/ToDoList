@@ -152,6 +152,32 @@ class _BodyState extends State<Body> {
                 ),
               ),
             );
+          } else if (snapshot.data!.docs.length == 0) {
+            return Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    LogInScreen.name + "'s Tasks",
+                    style: TextStyle(
+                      color: Colors.green.shade700,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    "No Tasks added",
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            );
           } else {
             return SafeArea(
               child: Padding(

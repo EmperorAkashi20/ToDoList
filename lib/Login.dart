@@ -133,7 +133,6 @@ class _LogInScreenState extends State<LogInScreen> {
                           await _auth.signInWithEmailAndPassword(
                               email: LogInForm.email.toString(),
                               password: LogInForm.password.toString());
-
                           await getCurrentUser();
                           Navigator.of(context).pushReplacement(
                             MaterialPageRoute(

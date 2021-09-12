@@ -27,6 +27,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
 
+  Future getCurrentUser() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await _firestore
+            .collection('Users')
+            .where('Email', isEqualTo: SignUpForm.email)
+            .get()
+            .then((QuerySnapshot querySnapshot) {
+          querySnapshot.docs.forEach((element) {
+            LogInScreen.name = element['First Name'];
+            LogInScreen.docId = element.id;
+          });
+        });
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,29 +125,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         SignUpScreen.showSpinner = true;
                       });
                       try {
-                        final newUser =
-                            await _auth.createUserWithEmailAndPassword(
-                                email: SignUpForm.email.toString(),
-                                password: SignUpForm.password.toString());
-                        if (newUser != null) {
-                          var a = SignUpForm.firstName.toString().capitalize();
-                          var b = SignUpForm.lastName.toString().capitalize();
-                          await _firestore.collection('Users').add({
-                            'Email': SignUpForm.email,
-                            'First Name': a,
-                            'Last Name': b,
-                            'Full Name': a + ' ' + b,
-                            'Phone No': SignUpForm.phone,
-                          });
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (BuildContext context) => ToDoList(),
-                            ),
-                          );
-                          setState(() {
-                            SignUpScreen.showSpinner = false;
-                          });
-                        }
+                        await _auth.createUserWithEmailAndPassword(
+                            email: SignUpForm.email.toString(),
+                            password: SignUpForm.password.toString());
+                        var a = SignUpForm.firstName.toString().capitalize();
+                        var b = SignUpForm.lastName.toString().capitalize();
+                        await _firestore.collection('Users').add({
+                          'Email': SignUpForm.email,
+                          'First Name': a,
+                          'Last Name': b,
+                          'Full Name': a + ' ' + b,
+                          'Phone No': SignUpForm.phone,
+                        });
+                        await getCurrentUser();
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (BuildContext context) => ToDoList(),
+                          ),
+                        );
+                        setState(() {
+                          SignUpScreen.showSpinner = false;
+                        });
                       } catch (e) {
                         print(e);
                       }

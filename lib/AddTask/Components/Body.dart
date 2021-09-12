@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
-import 'package:todo/Helpers/DatabaseHelpers.dart';
-import 'package:todo/Models/taskmodel.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:todo/ToDoList/Components/Body.dart';
 
@@ -309,6 +308,10 @@ class _AddTaskState extends State<AddTask> {
                                 : await updateTake(
                                     _title, _desc, _date, _priority, false);
                             setState(() {
+                              Body.title = null;
+                              Body.date = DateTime.now();
+                              Body.desc = null;
+                              Body.documentId = null;
                               AddTask.showSpinner = false;
                             });
                           },
