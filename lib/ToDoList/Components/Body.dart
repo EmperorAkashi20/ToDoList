@@ -5,13 +5,16 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animations/loading_animations.dart';
 import 'package:todo/AddTask/Components/Body.dart';
-import 'package:todo/Helpers/DatabaseHelpers.dart';
 import 'package:todo/Login.dart';
-import 'package:todo/Models/taskmodel.dart';
 import 'package:todo/main.dart';
 
 class Body extends StatefulWidget {
   static var title;
+  static var documentId;
+  static var desc;
+  static var date;
+  static var priority;
+
   const Body({Key? key}) : super(key: key);
 
   @override
@@ -21,84 +24,8 @@ class Body extends StatefulWidget {
 class _BodyState extends State<Body> {
   final _firestore = FirebaseFirestore.instance;
   var loggedInUser;
-  Future<List<Task>>? _taskList;
-  final DateFormat _dateFormatter = DateFormat('MMM dd, yyyy');
   bool completed = false;
-
-  Widget _buildTask(Task task) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-      child: Column(
-        children: [
-          ListTile(
-              isThreeLine: true,
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    task.title!,
-                    style: TextStyle(
-                      fontSize: 18,
-                      decoration: task.status == 0
-                          ? TextDecoration.none
-                          : TextDecoration.lineThrough,
-                    ),
-                  ),
-                  Text(
-                    task.desc!,
-                    style: TextStyle(
-                      fontSize: 16,
-                      decoration: task.status == 0
-                          ? TextDecoration.none
-                          : TextDecoration.lineThrough,
-                    ),
-                  ),
-                ],
-              ),
-              subtitle: Text(
-                '${_dateFormatter.format(task.date!)} * ${task.priority}',
-                style: TextStyle(
-                  fontSize: 15,
-                  decoration: task.status == 0
-                      ? TextDecoration.none
-                      : TextDecoration.lineThrough,
-                ),
-              ),
-              trailing: Checkbox(
-                checkColor: Colors.white,
-                activeColor: Colors.redAccent,
-                value: task.status == 1 ? true : false,
-                onChanged: (value) {
-                  task.status = value! ? 1 : 0;
-                  DatabaseHelper.instance.updateTask(task);
-                  _updateTaskList();
-                },
-              ),
-              onTap: () {
-                setState(() {
-                  Body.title = task.title;
-                });
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => AddTask(
-                      updateTaskList: _updateTaskList,
-                      task: task,
-                    ),
-                  ),
-                );
-              }),
-          Divider(),
-        ],
-      ),
-    );
-  }
-
-  _updateTaskList() {
-    setState(() {
-      _taskList = DatabaseHelper.instance.getTaskList();
-    });
-  }
+  int completedTaskCount = 0;
 
   void showNotification() {
     flutterLocalNotificationsPlugin.show(
@@ -119,33 +46,19 @@ class _BodyState extends State<Body> {
     );
   }
 
-  // Future getTasks() async {
-  //   await _firestore
-  //       .collection('Users/' + LogInScreen.docId + '/Tasks')
-  //       .get()
-  //       .then((QuerySnapshot querySnapshot) {
-  //     querySnapshot.docs.forEach((element) {
-  //       print(element['Title']);
-  //     });
-  //   });
-  // }
-
-  // void taskStrem() async {
-  //   await for (var snapshot in _firestore
-  //       .collection('Users/' + LogInScreen.docId + '/Tasks')
-  //       .snapshots()) {
-  //     for (var tasks in snapshot.docs) {
-  //       print(tasks.id);
-  //     }
-  //   }
-  // }
+  getUpdatedTaskInfo() {
+    _firestore
+        .collection("Users/" + LogInScreen.docId + "/Tasks/")
+        .where('currentStatus', isEqualTo: true)
+        .get()
+        .then((value) {
+      completedTaskCount = value.size;
+    });
+  }
 
   @override
   void initState() {
-    _updateTaskList();
-    // getTasks();
-    // taskStrem();
-
+    getUpdatedTaskInfo();
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
       AndroidNotification? android = message.notification?.android;
@@ -205,14 +118,16 @@ class _BodyState extends State<Body> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => AddTask(
-                updateTaskList: _updateTaskList,
-              ),
+              builder: (_) => AddTask(),
             ),
           );
         },
         backgroundColor: Colors.redAccent,
         child: Icon(Icons.add),
+      ),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
@@ -237,12 +152,7 @@ class _BodyState extends State<Body> {
                 ),
               ),
             );
-          }
-          // final int completedTaskCount = snapshot.data!
-          //     .where((Task task) => task.status == 1)
-          //     .toList()
-          //     .length;
-          else {
+          } else {
             return SafeArea(
               child: Padding(
                 padding:
@@ -261,19 +171,19 @@ class _BodyState extends State<Body> {
                     SizedBox(
                       height: windowHeight * 0.01,
                     ),
-                    Text(
-                      '0 out of ${snapshot.data!.docs.length}',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    // Text(
+                    //   '$completedTaskCount out of ${snapshot.data!.docs.length}',
+                    //   style: TextStyle(
+                    //     color: Colors.grey,
+                    //     fontSize: 20,
+                    //     fontWeight: FontWeight.w500,
+                    //   ),
+                    // ),
                     SizedBox(
                       height: windowHeight * 0.03,
                     ),
                     Expanded(
-                      child: ListView(
+                      child: Column(
                         children: snapshot.data!.docs
                             .map((DocumentSnapshot document) {
                           Map<String, dynamic> data =
@@ -281,68 +191,80 @@ class _BodyState extends State<Body> {
                           DateFormat _dateFormat = DateFormat('y-MM-d');
                           String formattedDate =
                               _dateFormat.format(data['Date'].toDate());
-                          print(document.id);
-                          return ListTile(
-                            isThreeLine: true,
-                            title: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    data['Title'],
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      decoration: data['currentStatus'] == false
-                                          ? TextDecoration.none
-                                          : TextDecoration.lineThrough,
+                          return Column(
+                            children: [
+                              ListTile(
+                                isThreeLine: true,
+                                title: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        data['Title'],
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          decoration:
+                                              data['currentStatus'] == false
+                                                  ? TextDecoration.none
+                                                  : TextDecoration.lineThrough,
+                                        ),
+                                      ),
+                                      Text(
+                                        data['Description'],
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          decoration:
+                                              data['currentStatus'] == false
+                                                  ? TextDecoration.none
+                                                  : TextDecoration.lineThrough,
+                                        ),
+                                      ),
+                                    ]),
+                                subtitle: Text(
+                                    "$formattedDate * ${data['Priority']}"),
+                                trailing: Checkbox(
+                                  checkColor: Colors.white,
+                                  activeColor: Colors.redAccent,
+                                  value: data['currentStatus'],
+                                  onChanged: (value) async {
+                                    setState(() {
+                                      data['currentStatus'] = value!;
+                                      _firestore
+                                          .doc("Users/" +
+                                              LogInScreen.docId +
+                                              "/Tasks/" +
+                                              document.id)
+                                          .update({
+                                            'currentStatus':
+                                                data['currentStatus']
+                                          })
+                                          .then((value) =>
+                                              print('Status updated'))
+                                          .catchError((error) => print(error));
+                                      getUpdatedTaskInfo();
+                                    });
+                                  },
+                                ),
+                                onTap: () {
+                                  setState(() {
+                                    Body.title = data['Title'];
+                                    Body.documentId = document.id;
+                                    Body.desc = data['Description'];
+                                    Body.priority = data['Priority'];
+                                    Body.date = DateTime.parse(formattedDate);
+                                  });
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => AddTask(),
                                     ),
-                                  ),
-                                  Text(
-                                    data['Description'],
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      decoration: data['currentStatus'] == false
-                                          ? TextDecoration.none
-                                          : TextDecoration.lineThrough,
-                                    ),
-                                  ),
-                                ]),
-                            subtitle:
-                                Text("$formattedDate * ${data['Priority']}"),
-                            trailing: Checkbox(
-                              checkColor: Colors.white,
-                              activeColor: Colors.redAccent,
-                              value: data['currentStatus'],
-                              onChanged: (value) {
-                                setState(() {
-                                  data['currentStatus'] = value!;
-
-                                  _firestore
-                                      .doc("Users/" +
-                                          LogInScreen.docId +
-                                          "/Tasks/" +
-                                          document.id)
-                                      .update({
-                                        'currentStatus': data['currentStatus']
-                                      })
-                                      .then((value) => print('Status updated'))
-                                      .catchError((error) => print(error));
-                                });
-                              },
-                            ),
-                            onTap: () {
-                              setState(() {
-                                Body.title = data['Title'];
-                              });
-                              // Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(
-                              //     builder: (_) => AddTask(
-                              //       updateTaskList: _updateTaskList,
-                              //       task: task,
-                              //     ),
-                              //   ),
-                              // );
-                            },
+                                  );
+                                },
+                              ),
+                              Divider(
+                                thickness: 1.2,
+                              ),
+                            ],
                           );
                         }).toList(),
                       ),

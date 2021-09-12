@@ -4,15 +4,17 @@ import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:todo/Helpers/DatabaseHelpers.dart';
 import 'package:todo/Models/taskmodel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:todo/ToDoList/Components/Body.dart';
 
 import '../../Login.dart';
 
 class AddTask extends StatefulWidget {
   static String routeName = '/addTask';
-  final Function? updateTaskList;
-  final Task? task;
+
   static bool showSpinner = false;
-  const AddTask({Key? key, this.task, this.updateTaskList}) : super(key: key);
+  const AddTask({
+    Key? key,
+  }) : super(key: key);
 
   @override
   _AddTaskState createState() => _AddTaskState();
@@ -68,11 +70,11 @@ class _AddTaskState extends State<AddTask> {
     }
   }
 
-  _delete() {
-    DatabaseHelper.instance.deleteTask(widget.task!.id!);
-    widget.updateTaskList!();
-    Navigator.pop(context);
-  }
+  // _delete() {
+  //   DatabaseHelper.instance.deleteTask(widget.task!.id!);
+  //   widget.updateTaskList!();
+  //   Navigator.pop(context);
+  // }
 
   addTask(String id, String title, String desc, DateTime date, String priority,
       bool completed, String taskId) {
@@ -92,13 +94,31 @@ class _AddTaskState extends State<AddTask> {
     });
   }
 
+  updateTake(String title, String desc, DateTime date, String priority,
+      bool completed) {
+    _firestore
+        .doc("Users/" + LogInScreen.docId + "/Tasks/" + Body.documentId)
+        .update({
+      "Title": title,
+      "Description": desc,
+      "Date": date,
+      "Priority": priority,
+      "currentStatus": completed,
+    }).then((value) {
+      print('Status updated');
+      Navigator.pop(context);
+    }).catchError((error) {
+      print(error);
+    });
+  }
+
   @override
   void initState() {
-    if (widget.task != null) {
-      _title = widget.task!.title!;
-      _desc = widget.task!.desc!;
-      _date = widget.task!.date!;
-      _priority = widget.task!.priority!;
+    if (Body.documentId != null) {
+      _title = Body.title;
+      _desc = Body.desc;
+      _date = Body.date;
+      _priority = Body.priority;
     }
     _dateController.text = _dateFormatter.format(_date);
 
@@ -123,6 +143,15 @@ class _AddTaskState extends State<AddTask> {
         actions: [
           CloseButton(
             color: Colors.black,
+            onPressed: () {
+              setState(() {
+                Body.title = null;
+                Body.date = DateTime.now();
+                Body.desc = null;
+                Body.documentId = null;
+                Navigator.pop(context);
+              });
+            },
           ),
         ],
       ),
@@ -138,7 +167,7 @@ class _AddTaskState extends State<AddTask> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.task == null ? 'Add A Task' : 'Update Task',
+                    Body.documentId == null ? 'Add A Task' : 'Update Task',
                     style: TextStyle(
                       color: Colors.green.shade700,
                       fontSize: 40,
@@ -274,12 +303,14 @@ class _AddTaskState extends State<AddTask> {
                               taskId = (titleTask + time).toString();
                               AddTask.showSpinner = true;
                             });
-                            await addTask(LogInScreen.docId, _title, _desc,
-                                _date, _priority, false, taskId);
+                            Body.documentId == null
+                                ? await addTask(LogInScreen.docId, _title,
+                                    _desc, _date, _priority, false, taskId)
+                                : await updateTake(
+                                    _title, _desc, _date, _priority, false);
                             setState(() {
                               AddTask.showSpinner = false;
                             });
-                            // await _submit();
                           },
                           child: Container(
                             height: windowHeight * 0.065,
@@ -290,7 +321,7 @@ class _AddTaskState extends State<AddTask> {
                             ),
                             child: Center(
                               child: Text(
-                                widget.task == null
+                                Body.documentId == null
                                     ? 'Add Task'
                                     : 'Update Task',
                                 style: TextStyle(
@@ -305,10 +336,26 @@ class _AddTaskState extends State<AddTask> {
                         SizedBox(
                           height: windowHeight * 0.03,
                         ),
-                        widget.task == null
+                        Body.documentId == null
                             ? SizedBox.shrink()
                             : GestureDetector(
-                                onTap: _delete,
+                                onTap: () {
+                                  _firestore
+                                      .doc("Users/" +
+                                          LogInScreen.docId +
+                                          "/Tasks/" +
+                                          Body.documentId)
+                                      .delete()
+                                      .then((value) => print('Deleted'))
+                                      .catchError((error) => print(error));
+                                  setState(() {
+                                    Body.title = null;
+                                    Body.date = DateTime.now();
+                                    Body.desc = null;
+                                    Body.documentId = null;
+                                    Navigator.pop(context);
+                                  });
+                                },
                                 child: Container(
                                   height: windowHeight * 0.065,
                                   width: double.infinity,

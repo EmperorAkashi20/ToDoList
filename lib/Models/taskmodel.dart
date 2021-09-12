@@ -1,10 +1,10 @@
 class Task {
-  int? id;
+  String? id;
   String? title;
   String? desc;
   DateTime? date;
   String? priority;
-  int? status;
+  bool? status;
 
   Task({
     this.title,
