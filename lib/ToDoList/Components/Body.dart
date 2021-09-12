@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -5,7 +6,9 @@ import 'package:intl/intl.dart';
 import 'package:loading_animations/loading_animations.dart';
 import 'package:todo/AddTask/Components/Body.dart';
 import 'package:todo/Helpers/DatabaseHelpers.dart';
+import 'package:todo/Login.dart';
 import 'package:todo/Models/taskmodel.dart';
+import 'package:todo/Widgets.dart/LoginForm.dart';
 import 'package:todo/main.dart';
 
 class Body extends StatefulWidget {
@@ -17,6 +20,8 @@ class Body extends StatefulWidget {
 }
 
 class _BodyState extends State<Body> {
+  final _firestore = FirebaseFirestore.instance;
+  var loggedInUser;
   Future<List<Task>>? _taskList;
   final DateFormat _dateFormatter = DateFormat('MMM dd, yyyy');
   bool completed = false;
@@ -115,9 +120,21 @@ class _BodyState extends State<Body> {
     );
   }
 
+  Future getTasks() async {
+    await _firestore
+        .collection('Users/' + LogInScreen.docId + '/Tasks')
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((element) {
+        print(element);
+      });
+    });
+  }
+
   @override
   void initState() {
     _updateTaskList();
+    getTasks();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
@@ -226,10 +243,10 @@ class _BodyState extends State<Body> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'My Tasks',
+                        LogInScreen.name + "'s Tasks",
                         style: TextStyle(
                           color: Colors.green.shade700,
-                          fontSize: 40,
+                          fontSize: 30,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

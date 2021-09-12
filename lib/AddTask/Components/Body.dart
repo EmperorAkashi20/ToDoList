@@ -1,8 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:todo/Helpers/DatabaseHelpers.dart';
 import 'package:todo/Models/taskmodel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:todo/ToDoList/Components/Body.dart';
+import 'package:todo/Widgets.dart/LoginForm.dart';
+
+import '../../Login.dart';
 
 class AddTask extends StatefulWidget {
   static String routeName = '/addTask';
@@ -21,6 +26,7 @@ class _AddTaskState extends State<AddTask> {
   String _priority = "";
   DateTime _date = DateTime.now();
   TimeOfDay _time = TimeOfDay.now();
+  final _firestore = FirebaseFirestore.instance;
 
   TextEditingController _dateController = new TextEditingController();
   TextEditingController _timeController = new TextEditingController();
@@ -87,6 +93,27 @@ class _AddTaskState extends State<AddTask> {
     Navigator.pop(context);
   }
 
+  void addTask(
+      String id, String title, String desc, String date, String priority) {
+    print(id);
+    print(title);
+    print(desc);
+    print(date);
+    print(priority);
+    _firestore.collection('Users/$id/Tasks').add({
+      "Title": title,
+      "Description": desc,
+      "Date": date,
+      "Priority": priority
+    }).then((_) {
+      print('Task Added');
+      widget.updateTaskList!();
+      Navigator.pop(context);
+    }).catchError((_) {
+      print('Error');
+    });
+  }
+
   @override
   void initState() {
     if (widget.task != null) {
@@ -109,7 +136,6 @@ class _AddTaskState extends State<AddTask> {
 
   @override
   Widget build(BuildContext context) {
-    CollectionReference tasks = FirebaseFirestore.instance.collection('tasks');
     double windowHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
@@ -261,14 +287,10 @@ class _AddTaskState extends State<AddTask> {
                       ),
                       GestureDetector(
                         onTap: () async {
-                          await tasks.add({
-                            'Title': _title,
-                            'Description': _desc,
-                            'Priority': _priority,
-                            'Date': _dateController.text,
-                          }).then(
-                              (value) => print('Task Added: $_title, $_desc'));
-                          await _submit();
+                          addTask(LogInScreen.docId, _title, _desc,
+                              _dateController.text, _priority);
+
+                          // await _submit();
                         },
                         child: Container(
                           height: windowHeight * 0.065,
