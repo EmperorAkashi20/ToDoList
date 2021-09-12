@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:todo/ToDoList/TodoList.dart';
+import 'package:todo/Login.dart';
 
 GlobalKey globalKey = GlobalKey();
 GlobalKey globalKey1 = GlobalKey();
@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData(fontFamily: "Nunito"),
       debugShowCheckedModeBanner: false,
-      home: ToDoList(),
+      home: LogInScreen(),
     );
   }
 }
