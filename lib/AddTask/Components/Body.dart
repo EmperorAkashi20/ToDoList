@@ -4,6 +4,7 @@ import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:todo/ToDoList/Components/Body.dart';
+import 'package:todo/main.dart';
 
 import '../../Login.dart';
 
@@ -96,7 +97,7 @@ class _AddTaskState extends State<AddTask> {
   updateTake(String title, String desc, DateTime date, String priority,
       bool completed) {
     _firestore
-        .doc("Users/" + LogInScreen.docId + "/Tasks/" + Body.documentId)
+        .doc("Users/" + MyApp.documentId + "/Tasks/" + Body.documentId)
         .update({
       "Title": title,
       "Description": desc,
@@ -303,8 +304,8 @@ class _AddTaskState extends State<AddTask> {
                               AddTask.showSpinner = true;
                             });
                             Body.documentId == null
-                                ? await addTask(LogInScreen.docId, _title,
-                                    _desc, _date, _priority, false, taskId)
+                                ? await addTask(MyApp.documentId, _title, _desc,
+                                    _date, _priority, false, taskId)
                                 : await updateTake(
                                     _title, _desc, _date, _priority, false);
                             setState(() {
@@ -345,7 +346,7 @@ class _AddTaskState extends State<AddTask> {
                                 onTap: () {
                                   _firestore
                                       .doc("Users/" +
-                                          LogInScreen.docId +
+                                          MyApp.documentId +
                                           "/Tasks/" +
                                           Body.documentId)
                                       .delete()

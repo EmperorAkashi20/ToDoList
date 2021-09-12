@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:todo/main.dart';
 
 import 'Login.dart';
 import 'Theme.dart';
@@ -138,6 +139,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           'Phone No': SignUpForm.phone,
                         });
                         await getCurrentUser();
+                        await MyApp.prefs.setString('email', SignUpForm.email);
+                        await MyApp.prefs.setString('docId', LogInScreen.docId);
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
                             builder: (BuildContext context) => ToDoList(),

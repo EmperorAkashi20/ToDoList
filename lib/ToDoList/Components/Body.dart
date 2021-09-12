@@ -48,7 +48,7 @@ class _BodyState extends State<Body> {
 
   getUpdatedTaskInfo() {
     _firestore
-        .collection("Users/" + LogInScreen.docId + "/Tasks/")
+        .collection("Users/" + MyApp.documentId + "/Tasks/")
         .where('currentStatus', isEqualTo: true)
         .get()
         .then((value) {
@@ -131,7 +131,7 @@ class _BodyState extends State<Body> {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
-            .collection('Users/' + LogInScreen.docId + '/Tasks')
+            .collection('Users/' + MyApp.documentId + '/Tasks')
             .orderBy('Date')
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -160,7 +160,7 @@ class _BodyState extends State<Body> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    LogInScreen.name + "'s Tasks",
+                    MyApp.userFirstName + "'s Tasks",
                     style: TextStyle(
                       color: Colors.green.shade700,
                       fontSize: 30,
@@ -187,7 +187,7 @@ class _BodyState extends State<Body> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      LogInScreen.name + "'s Tasks",
+                      MyApp.userFirstName + "'s Tasks",
                       style: TextStyle(
                         color: Colors.green.shade700,
                         fontSize: 30,
@@ -257,7 +257,7 @@ class _BodyState extends State<Body> {
                                       data['currentStatus'] = value!;
                                       _firestore
                                           .doc("Users/" +
-                                              LogInScreen.docId +
+                                              MyApp.documentId +
                                               "/Tasks/" +
                                               document.id)
                                           .update({

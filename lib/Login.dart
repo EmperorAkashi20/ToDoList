@@ -10,6 +10,8 @@ import 'Widgets.dart/PrimaryButton.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
+import 'main.dart';
+
 class LogInScreen extends StatefulWidget {
   static var name;
   static var docId;
@@ -134,6 +136,11 @@ class _LogInScreenState extends State<LogInScreen> {
                               email: LogInForm.email.toString(),
                               password: LogInForm.password.toString());
                           await getCurrentUser();
+                          await MyApp.prefs.setString('email', LogInForm.email);
+                          await MyApp.prefs
+                              .setString('docId', LogInScreen.docId);
+                          await MyApp.prefs
+                              .setString('userFirstName', LogInScreen.name);
                           Navigator.of(context).pushReplacement(
                             MaterialPageRoute(
                               builder: (BuildContext context) => ToDoList(),
