@@ -1,11 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:todo/Helpers/DatabaseHelpers.dart';
 import 'package:todo/Models/taskmodel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:todo/ToDoList/Components/Body.dart';
-import 'package:todo/Widgets.dart/LoginForm.dart';
 
 import '../../Login.dart';
 
@@ -13,6 +11,7 @@ class AddTask extends StatefulWidget {
   static String routeName = '/addTask';
   final Function? updateTaskList;
   final Task? task;
+  static bool showSpinner = false;
   const AddTask({Key? key, this.task, this.updateTaskList}) : super(key: key);
 
   @override
@@ -27,6 +26,7 @@ class _AddTaskState extends State<AddTask> {
   DateTime _date = DateTime.now();
   TimeOfDay _time = TimeOfDay.now();
   final _firestore = FirebaseFirestore.instance;
+  var taskId;
 
   TextEditingController _dateController = new TextEditingController();
   TextEditingController _timeController = new TextEditingController();
@@ -68,46 +68,24 @@ class _AddTaskState extends State<AddTask> {
     }
   }
 
-  _submit() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-
-      Task task =
-          Task(title: _title, date: _date, priority: _priority, desc: _desc);
-      if (widget.task == null) {
-        task.status = 0;
-        DatabaseHelper.instance.insertTask(task);
-      } else {
-        task.id = widget.task!.id;
-        task.status = widget.task!.status;
-        DatabaseHelper.instance.updateTask(task);
-      }
-      widget.updateTaskList!();
-      Navigator.pop(context);
-    }
-  }
-
   _delete() {
     DatabaseHelper.instance.deleteTask(widget.task!.id!);
     widget.updateTaskList!();
     Navigator.pop(context);
   }
 
-  void addTask(
-      String id, String title, String desc, String date, String priority) {
-    print(id);
-    print(title);
-    print(desc);
-    print(date);
-    print(priority);
+  addTask(String id, String title, String desc, DateTime date, String priority,
+      bool completed, String taskId) {
     _firestore.collection('Users/$id/Tasks').add({
       "Title": title,
       "Description": desc,
       "Date": date,
-      "Priority": priority
+      "Priority": priority,
+      "currentStatus": completed,
+      "TaskId": taskId,
     }).then((_) {
       print('Task Added');
-      widget.updateTaskList!();
+      // widget.updateTaskList!();
       Navigator.pop(context);
     }).catchError((_) {
       print('Error');
@@ -148,199 +126,213 @@ class _AddTaskState extends State<AddTask> {
           ),
         ],
       ),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 25),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.task == null ? 'Add A Task' : 'Update Task',
-                  style: TextStyle(
-                    color: Colors.green.shade700,
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
+      body: ModalProgressHUD(
+        inAsyncCall: AddTask.showSpinner,
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 40.0, horizontal: 25),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.task == null ? 'Add A Task' : 'Update Task',
+                    style: TextStyle(
+                      color: Colors.green.shade700,
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                SizedBox(
-                  height: windowHeight * 0.1,
-                ),
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        style: TextStyle(fontSize: 18, color: Colors.black),
-                        decoration: InputDecoration(
-                          labelText: 'Title',
-                          labelStyle: TextStyle(
-                            fontSize: 18,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        validator: (input) => input!.trim().isEmpty
-                            ? 'Please Enter a Task Title'
-                            : null,
-                        onSaved: (input) => _title = input!,
-                        initialValue: _title,
-                        onChanged: (value) {
-                          _title = value;
-                        },
-                      ),
-                      SizedBox(
-                        height: windowHeight * 0.03,
-                      ),
-                      TextFormField(
-                        maxLength: 100,
-                        style: TextStyle(fontSize: 18, color: Colors.black),
-                        decoration: InputDecoration(
-                          labelText: 'Description',
-                          labelStyle: TextStyle(
-                            fontSize: 18,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        validator: (input) => input!.trim().isEmpty
-                            ? 'Please Enter a Task Description'
-                            : null,
-                        onSaved: (input) => _desc = input!,
-                        onChanged: (value) {
-                          _desc = value;
-                        },
-                        initialValue: _desc,
-                      ),
-                      SizedBox(
-                        height: windowHeight * 0.03,
-                      ),
-                      TextFormField(
-                        readOnly: true,
-                        controller: _dateController,
-                        onTap: _handleDatePicker,
-                        style: TextStyle(fontSize: 18),
-                        onChanged: (value) {
-                          _date = value as DateTime;
-                        },
-                        decoration: InputDecoration(
-                          labelText: 'Date',
-                          labelStyle: TextStyle(fontSize: 18),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: windowHeight * 0.03,
-                      ),
-                      TextFormField(
-                        readOnly: true,
-                        controller: _timeController,
-                        onTap: _handleTimePicker,
-                        style: TextStyle(fontSize: 18),
-                        decoration: InputDecoration(
-                          labelText: 'Time',
-                          labelStyle: TextStyle(fontSize: 18),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: windowHeight * 0.03,
-                      ),
-                      DropdownButtonFormField(
-                        items: _priorities.map((String priority) {
-                          return DropdownMenuItem(
-                            value: priority,
-                            child: Text(
-                              priority,
-                              style: TextStyle(
-                                color: Colors.black,
-                              ),
+                  SizedBox(
+                    height: windowHeight * 0.1,
+                  ),
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          style: TextStyle(fontSize: 18, color: Colors.black),
+                          decoration: InputDecoration(
+                            labelText: 'Title',
+                            labelStyle: TextStyle(
+                              fontSize: 18,
                             ),
-                          );
-                        }).toList(),
-                        style: TextStyle(fontSize: 18),
-                        decoration: InputDecoration(
-                          labelText: 'Priority',
-                          labelStyle: TextStyle(fontSize: 18),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                           ),
+                          validator: (input) => input!.trim().isEmpty
+                              ? 'Please Enter a Task Title'
+                              : null,
+                          onSaved: (input) => _title = input!,
+                          initialValue: _title,
+                          onChanged: (value) {
+                            _title = value;
+                          },
                         ),
-                        validator: (input) => _priority == null
-                            ? 'Please select a priority level'
-                            : null,
-                        onChanged: (value) {
-                          setState(() {
-                            _priority = value.toString();
-                          });
-                        },
-                      ),
-                      SizedBox(
-                        height: windowHeight * 0.2,
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          addTask(LogInScreen.docId, _title, _desc,
-                              _dateController.text, _priority);
-
-                          // await _submit();
-                        },
-                        child: Container(
-                          height: windowHeight * 0.065,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.redAccent,
-                            borderRadius: BorderRadius.circular(20),
+                        SizedBox(
+                          height: windowHeight * 0.03,
+                        ),
+                        TextFormField(
+                          maxLength: 100,
+                          style: TextStyle(fontSize: 18, color: Colors.black),
+                          decoration: InputDecoration(
+                            labelText: 'Description',
+                            labelStyle: TextStyle(
+                              fontSize: 18,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                           ),
-                          child: Center(
-                            child: Text(
-                              widget.task == null ? 'Add Task' : 'Update Task',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                              ),
+                          validator: (input) => input!.trim().isEmpty
+                              ? 'Please Enter a Task Description'
+                              : null,
+                          onSaved: (input) => _desc = input!,
+                          onChanged: (value) {
+                            _desc = value;
+                          },
+                          initialValue: _desc,
+                        ),
+                        SizedBox(
+                          height: windowHeight * 0.03,
+                        ),
+                        TextFormField(
+                          readOnly: true,
+                          controller: _dateController,
+                          onTap: _handleDatePicker,
+                          style: TextStyle(fontSize: 18),
+                          onChanged: (value) {
+                            _date = value as DateTime;
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Date',
+                            labelStyle: TextStyle(fontSize: 18),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(
-                        height: windowHeight * 0.03,
-                      ),
-                      widget.task == null
-                          ? SizedBox.shrink()
-                          : GestureDetector(
-                              onTap: _delete,
-                              child: Container(
-                                height: windowHeight * 0.065,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  color: Colors.redAccent,
-                                  borderRadius: BorderRadius.circular(20),
+                        SizedBox(
+                          height: windowHeight * 0.03,
+                        ),
+                        TextFormField(
+                          readOnly: true,
+                          controller: _timeController,
+                          onTap: _handleTimePicker,
+                          style: TextStyle(fontSize: 18),
+                          decoration: InputDecoration(
+                            labelText: 'Time',
+                            labelStyle: TextStyle(fontSize: 18),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: windowHeight * 0.03,
+                        ),
+                        DropdownButtonFormField(
+                          items: _priorities.map((String priority) {
+                            return DropdownMenuItem(
+                              value: priority,
+                              child: Text(
+                                priority,
+                                style: TextStyle(
+                                  color: Colors.black,
                                 ),
-                                child: Center(
-                                  child: Text(
-                                    'Delete Task',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
+                              ),
+                            );
+                          }).toList(),
+                          style: TextStyle(fontSize: 18),
+                          decoration: InputDecoration(
+                            labelText: 'Priority',
+                            labelStyle: TextStyle(fontSize: 18),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          validator: (input) => _priority == null
+                              ? 'Please select a priority level'
+                              : null,
+                          onChanged: (value) {
+                            setState(() {
+                              _priority = value.toString();
+                            });
+                          },
+                        ),
+                        SizedBox(
+                          height: windowHeight * 0.2,
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            setState(() {
+                              var time = DateTime.now().toString();
+                              var titleTask = _title.substring(0, 2);
+                              taskId = (titleTask + time).toString();
+                              AddTask.showSpinner = true;
+                            });
+                            await addTask(LogInScreen.docId, _title, _desc,
+                                _date, _priority, false, taskId);
+                            setState(() {
+                              AddTask.showSpinner = false;
+                            });
+                            // await _submit();
+                          },
+                          child: Container(
+                            height: windowHeight * 0.065,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Center(
+                              child: Text(
+                                widget.task == null
+                                    ? 'Add Task'
+                                    : 'Update Task',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: windowHeight * 0.03,
+                        ),
+                        widget.task == null
+                            ? SizedBox.shrink()
+                            : GestureDetector(
+                                onTap: _delete,
+                                child: Container(
+                                  height: windowHeight * 0.065,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: Colors.redAccent,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      'Delete Task',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -348,24 +340,24 @@ class _AddTaskState extends State<AddTask> {
     );
   }
 
-  void _showSnackBar(String text) {
-    final snackBar = SnackBar(
-      duration: const Duration(seconds: 3),
-      content: Container(
-        height: 40.0,
-        color: Colors.transparent,
-        child: Center(
-          child: Text(
-            text,
-            style: const TextStyle(fontSize: 15.0, color: Colors.black),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-      backgroundColor: Colors.white,
-    );
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(snackBar);
-  }
+  // void _showSnackBar(String text) {
+  //   final snackBar = SnackBar(
+  //     duration: const Duration(seconds: 3),
+  //     content: Container(
+  //       height: 40.0,
+  //       color: Colors.transparent,
+  //       child: Center(
+  //         child: Text(
+  //           text,
+  //           style: const TextStyle(fontSize: 15.0, color: Colors.black),
+  //           textAlign: TextAlign.center,
+  //         ),
+  //       ),
+  //     ),
+  //     backgroundColor: Colors.white,
+  //   );
+  //   ScaffoldMessenger.of(context)
+  //     ..hideCurrentSnackBar()
+  //     ..showSnackBar(snackBar);
+  // }
 }

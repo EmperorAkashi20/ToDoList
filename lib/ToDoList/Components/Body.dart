@@ -8,7 +8,6 @@ import 'package:todo/AddTask/Components/Body.dart';
 import 'package:todo/Helpers/DatabaseHelpers.dart';
 import 'package:todo/Login.dart';
 import 'package:todo/Models/taskmodel.dart';
-import 'package:todo/Widgets.dart/LoginForm.dart';
 import 'package:todo/main.dart';
 
 class Body extends StatefulWidget {
@@ -120,21 +119,32 @@ class _BodyState extends State<Body> {
     );
   }
 
-  Future getTasks() async {
-    await _firestore
-        .collection('Users/' + LogInScreen.docId + '/Tasks')
-        .get()
-        .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((element) {
-        print(element);
-      });
-    });
-  }
+  // Future getTasks() async {
+  //   await _firestore
+  //       .collection('Users/' + LogInScreen.docId + '/Tasks')
+  //       .get()
+  //       .then((QuerySnapshot querySnapshot) {
+  //     querySnapshot.docs.forEach((element) {
+  //       print(element['Title']);
+  //     });
+  //   });
+  // }
+
+  // void taskStrem() async {
+  //   await for (var snapshot in _firestore
+  //       .collection('Users/' + LogInScreen.docId + '/Tasks')
+  //       .snapshots()) {
+  //     for (var tasks in snapshot.docs) {
+  //       print(tasks.id);
+  //     }
+  //   }
+  // }
 
   @override
   void initState() {
     _updateTaskList();
-    getTasks();
+    // getTasks();
+    // taskStrem();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
@@ -204,9 +214,12 @@ class _BodyState extends State<Body> {
         backgroundColor: Colors.redAccent,
         child: Icon(Icons.add),
       ),
-      body: FutureBuilder(
-        future: _taskList,
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _firestore
+            .collection('Users/' + LogInScreen.docId + '/Tasks')
+            .orderBy('Date')
+            .snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.data == null) {
             return Container(
               child: Center(
@@ -225,49 +238,120 @@ class _BodyState extends State<Body> {
               ),
             );
           }
-          final int completedTaskCount = snapshot.data!
-              .where((Task task) => task.status == 1)
-              .toList()
-              .length;
-          return ListView.builder(
-            padding: EdgeInsets.symmetric(vertical: 80.0),
-            itemCount: snapshot.data.length + 1,
-            itemBuilder: (BuildContext context, int index) {
-              if (index == 0) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40.0,
-                    vertical: 20,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        LogInScreen.name + "'s Tasks",
-                        style: TextStyle(
-                          color: Colors.green.shade700,
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                        ),
+          // final int completedTaskCount = snapshot.data!
+          //     .where((Task task) => task.status == 1)
+          //     .toList()
+          //     .length;
+          else {
+            return SafeArea(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      LogInScreen.name + "'s Tasks",
+                      style: TextStyle(
+                        color: Colors.green.shade700,
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
                       ),
-                      SizedBox(
-                        height: windowHeight * 0.01,
+                    ),
+                    SizedBox(
+                      height: windowHeight * 0.01,
+                    ),
+                    Text(
+                      '0 out of ${snapshot.data!.docs.length}',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
                       ),
-                      Text(
-                        '$completedTaskCount out of ${snapshot.data.length}',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
-                        ),
+                    ),
+                    SizedBox(
+                      height: windowHeight * 0.03,
+                    ),
+                    Expanded(
+                      child: ListView(
+                        children: snapshot.data!.docs
+                            .map((DocumentSnapshot document) {
+                          Map<String, dynamic> data =
+                              document.data()! as Map<String, dynamic>;
+                          DateFormat _dateFormat = DateFormat('y-MM-d');
+                          String formattedDate =
+                              _dateFormat.format(data['Date'].toDate());
+                          print(document.id);
+                          return ListTile(
+                            isThreeLine: true,
+                            title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    data['Title'],
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      decoration: data['currentStatus'] == false
+                                          ? TextDecoration.none
+                                          : TextDecoration.lineThrough,
+                                    ),
+                                  ),
+                                  Text(
+                                    data['Description'],
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      decoration: data['currentStatus'] == false
+                                          ? TextDecoration.none
+                                          : TextDecoration.lineThrough,
+                                    ),
+                                  ),
+                                ]),
+                            subtitle:
+                                Text("$formattedDate * ${data['Priority']}"),
+                            trailing: Checkbox(
+                              checkColor: Colors.white,
+                              activeColor: Colors.redAccent,
+                              value: data['currentStatus'],
+                              onChanged: (value) {
+                                setState(() {
+                                  data['currentStatus'] = value!;
+
+                                  _firestore
+                                      .doc("Users/" +
+                                          LogInScreen.docId +
+                                          "/Tasks/" +
+                                          document.id)
+                                      .update({
+                                        'currentStatus': data['currentStatus']
+                                      })
+                                      .then((value) => print('Status updated'))
+                                      .catchError((error) => print(error));
+                                });
+                              },
+                            ),
+                            onTap: () {
+                              setState(() {
+                                Body.title = data['Title'];
+                              });
+                              // Navigator.push(
+                              //   context,
+                              //   MaterialPageRoute(
+                              //     builder: (_) => AddTask(
+                              //       updateTaskList: _updateTaskList,
+                              //       task: task,
+                              //     ),
+                              //   ),
+                              // );
+                            },
+                          );
+                        }).toList(),
                       ),
-                    ],
-                  ),
-                );
-              }
-              return _buildTask(snapshot.data[index - 1]);
-            },
-          );
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
         },
       ),
     );

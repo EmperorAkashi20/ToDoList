@@ -32,130 +32,133 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       body: ModalProgressHUD(
         inAsyncCall: SignUpScreen.showSpinner,
-        child: SingleChildScrollView(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  height: 70,
-                ),
-                Padding(
-                  padding: kDefaultPadding,
-                  child: Text(
-                    'Create Account',
-                    style: titleText,
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SingleChildScrollView(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 70,
                   ),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Padding(
-                  padding: kDefaultPadding,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Already a member?',
-                        style: subTitle,
-                      ),
-                      SizedBox(
-                        width: 5,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => LogInScreen()));
-                        },
-                        child: Text(
-                          'Log In',
-                          style: textButton.copyWith(
-                            decoration: TextDecoration.underline,
-                            decorationThickness: 1,
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Padding(
-                  padding: kDefaultPadding,
-                  child: SignUpForm(),
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                Padding(
-                  padding: kDefaultPadding,
-                  child: CheckBox('I agree to all the terms and conditions.'),
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    setState(() {
-                      SignUpScreen.showSpinner = true;
-                    });
-                    try {
-                      final newUser =
-                          await _auth.createUserWithEmailAndPassword(
-                              email: SignUpForm.email.toString(),
-                              password: SignUpForm.password.toString());
-                      if (newUser != null) {
-                        var a = SignUpForm.firstName.toString().capitalize();
-                        var b = SignUpForm.lastName.toString().capitalize();
-                        await _firestore.collection('Users').add({
-                          'Email': SignUpForm.email,
-                          'First Name': a,
-                          'Last Name': b,
-                          'Full Name': a + ' ' + b,
-                          'Phone No': SignUpForm.phone,
-                        });
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (BuildContext context) => ToDoList(),
-                          ),
-                        );
-                        setState(() {
-                          SignUpScreen.showSpinner = false;
-                        });
-                      }
-                    } catch (e) {
-                      print(e);
-                    }
-                  },
-                  child: Padding(
+                  Padding(
                     padding: kDefaultPadding,
-                    child: PrimaryButton(buttonText: 'Sign Up'),
+                    child: Text(
+                      'Create Account',
+                      style: titleText,
+                    ),
                   ),
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                // Padding(
-                //   padding: kDefaultPadding,
-                //   child: Text(
-                //     'Or log in with:',
-                //     style: subTitle.copyWith(color: kBlackColor),
-                //   ),
-                // ),
-                // SizedBox(
-                //   height: 20,
-                // ),
-                // Padding(
-                //   padding: kDefaultPadding,
-                //   child: LoginOption(),
-                // ),
-                SizedBox(
-                  height: 20,
-                ),
-              ],
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Padding(
+                    padding: kDefaultPadding,
+                    child: Row(
+                      children: [
+                        Text(
+                          'Already a member?',
+                          style: subTitle,
+                        ),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => LogInScreen()));
+                          },
+                          child: Text(
+                            'Log In',
+                            style: textButton.copyWith(
+                              decoration: TextDecoration.underline,
+                              decorationThickness: 1,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Padding(
+                    padding: kDefaultPadding,
+                    child: SignUpForm(),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Padding(
+                    padding: kDefaultPadding,
+                    child: CheckBox('I agree to all the terms and conditions.'),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  GestureDetector(
+                    onTap: () async {
+                      setState(() {
+                        SignUpScreen.showSpinner = true;
+                      });
+                      try {
+                        final newUser =
+                            await _auth.createUserWithEmailAndPassword(
+                                email: SignUpForm.email.toString(),
+                                password: SignUpForm.password.toString());
+                        if (newUser != null) {
+                          var a = SignUpForm.firstName.toString().capitalize();
+                          var b = SignUpForm.lastName.toString().capitalize();
+                          await _firestore.collection('Users').add({
+                            'Email': SignUpForm.email,
+                            'First Name': a,
+                            'Last Name': b,
+                            'Full Name': a + ' ' + b,
+                            'Phone No': SignUpForm.phone,
+                          });
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (BuildContext context) => ToDoList(),
+                            ),
+                          );
+                          setState(() {
+                            SignUpScreen.showSpinner = false;
+                          });
+                        }
+                      } catch (e) {
+                        print(e);
+                      }
+                    },
+                    child: Padding(
+                      padding: kDefaultPadding,
+                      child: PrimaryButton(buttonText: 'Sign Up'),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  // Padding(
+                  //   padding: kDefaultPadding,
+                  //   child: Text(
+                  //     'Or log in with:',
+                  //     style: subTitle.copyWith(color: kBlackColor),
+                  //   ),
+                  // ),
+                  // SizedBox(
+                  //   height: 20,
+                  // ),
+                  // Padding(
+                  //   padding: kDefaultPadding,
+                  //   child: LoginOption(),
+                  // ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
