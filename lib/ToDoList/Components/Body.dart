@@ -5,7 +5,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animations/loading_animations.dart';
 import 'package:todo/AddTask/Components/Body.dart';
-import 'package:todo/Login.dart';
 import 'package:todo/main.dart';
 
 class Body extends StatefulWidget {
@@ -220,6 +219,32 @@ class _BodyState extends State<Body> {
                           return Column(
                             children: [
                               ListTile(
+                                leading: data['Priority'] == 'High'
+                                    ? Text(
+                                        '!!!',
+                                        style: TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    : data['Priority'] == 'Medium'
+                                        ? Text(
+                                            '!!',
+                                            style: TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 25,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          )
+                                        : Text(
+                                            '!',
+                                            style: TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 25,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
                                 isThreeLine: true,
                                 title: Column(
                                     crossAxisAlignment:
