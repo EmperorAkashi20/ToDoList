@@ -4,6 +4,7 @@ import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:todo/ToDoList/Components/Body.dart';
+import 'package:get/get.dart';
 import 'package:todo/main.dart';
 
 import '../../Login.dart';
@@ -70,12 +71,6 @@ class _AddTaskState extends State<AddTask> {
     }
   }
 
-  // _delete() {
-  //   DatabaseHelper.instance.deleteTask(widget.task!.id!);
-  //   widget.updateTaskList!();
-  //   Navigator.pop(context);
-  // }
-
   addTask(String id, String title, String desc, DateTime date, String priority,
       bool completed, String taskId) {
     _firestore.collection('Users/$id/Tasks').add({
@@ -88,7 +83,9 @@ class _AddTaskState extends State<AddTask> {
     }).then((_) {
       print('Task Added');
       // widget.updateTaskList!();
+
       Navigator.pop(context);
+      Get.snackbar(title, 'Task Added');
     }).catchError((_) {
       print('Error');
     });
@@ -106,7 +103,9 @@ class _AddTaskState extends State<AddTask> {
       "currentStatus": completed,
     }).then((value) {
       print('Status updated');
+
       Navigator.pop(context);
+      Get.snackbar(title, 'Task Updated');
     }).catchError((error) {
       print(error);
     });
@@ -358,6 +357,10 @@ class _AddTaskState extends State<AddTask> {
                                     Body.desc = null;
                                     Body.documentId = null;
                                     Navigator.pop(context);
+                                    Get.snackbar(
+                                      _title,
+                                      'Task Deleted Successfully',
+                                    );
                                   });
                                 },
                                 child: Container(

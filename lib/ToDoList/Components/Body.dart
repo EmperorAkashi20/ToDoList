@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animations/loading_animations.dart';
 import 'package:todo/AddTask/Components/Body.dart';
@@ -300,7 +301,8 @@ class _BodyState extends State<Body> {
                                       ),
                                     ]),
                                 subtitle: Text(
-                                    "$formattedDate * ${data['Priority']}"),
+                                  "$formattedDate * ${data['Priority']}",
+                                ),
                                 trailing: Checkbox(
                                   checkColor: Colors.white,
                                   activeColor: Colors.redAccent,
