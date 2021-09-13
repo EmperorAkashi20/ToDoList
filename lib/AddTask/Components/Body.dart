@@ -97,7 +97,7 @@ class _AddTaskState extends State<AddTask> {
   updateTake(String title, String desc, DateTime date, String priority,
       bool completed) {
     _firestore
-        .doc("Users/" + MyApp.documentId + "/Tasks/" + Body.documentId)
+        .doc("Users/" + Body.docIdLocal + "/Tasks/" + Body.documentId)
         .update({
       "Title": title,
       "Description": desc,
@@ -304,7 +304,7 @@ class _AddTaskState extends State<AddTask> {
                               AddTask.showSpinner = true;
                             });
                             Body.documentId == null
-                                ? await addTask(MyApp.documentId, _title, _desc,
+                                ? await addTask(Body.docIdLocal, _title, _desc,
                                     _date, _priority, false, taskId)
                                 : await updateTake(
                                     _title, _desc, _date, _priority, false);
@@ -346,7 +346,7 @@ class _AddTaskState extends State<AddTask> {
                                 onTap: () {
                                   _firestore
                                       .doc("Users/" +
-                                          MyApp.documentId +
+                                          Body.docIdLocal +
                                           "/Tasks/" +
                                           Body.documentId)
                                       .delete()

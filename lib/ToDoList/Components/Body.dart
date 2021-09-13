@@ -5,6 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animations/loading_animations.dart';
 import 'package:todo/AddTask/Components/Body.dart';
+import 'package:todo/Login.dart';
 import 'package:todo/main.dart';
 
 class Body extends StatefulWidget {
@@ -13,6 +14,8 @@ class Body extends StatefulWidget {
   static var desc;
   static var date;
   static var priority;
+  static var docIdLocal;
+  static var user;
 
   const Body({Key? key}) : super(key: key);
 
@@ -47,7 +50,7 @@ class _BodyState extends State<Body> {
 
   getUpdatedTaskInfo() {
     _firestore
-        .collection("Users/" + MyApp.documentId + "/Tasks/")
+        .collection("Users/" + Body.docIdLocal + "/Tasks/")
         .where('currentStatus', isEqualTo: true)
         .get()
         .then((value) {
@@ -57,6 +60,13 @@ class _BodyState extends State<Body> {
 
   @override
   void initState() {
+    MyApp.documentId == '0'
+        ? Body.docIdLocal = LogInScreen.docId
+        : Body.docIdLocal = MyApp.documentId;
+
+    MyApp.userFirstName == '0'
+        ? Body.user = LogInScreen.name
+        : Body.user = MyApp.userFirstName;
     getUpdatedTaskInfo();
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
@@ -130,7 +140,7 @@ class _BodyState extends State<Body> {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
-            .collection('Users/' + MyApp.documentId + '/Tasks')
+            .collection('Users/' + Body.docIdLocal + '/Tasks')
             .orderBy('Date')
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -159,7 +169,7 @@ class _BodyState extends State<Body> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    MyApp.userFirstName + "'s Tasks",
+                    Body.user + "'s Tasks",
                     style: TextStyle(
                       color: Colors.green.shade700,
                       fontSize: 30,
@@ -186,7 +196,7 @@ class _BodyState extends State<Body> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      MyApp.userFirstName + "'s Tasks",
+                      Body.user + "'s Tasks",
                       style: TextStyle(
                         color: Colors.green.shade700,
                         fontSize: 30,
@@ -282,7 +292,7 @@ class _BodyState extends State<Body> {
                                       data['currentStatus'] = value!;
                                       _firestore
                                           .doc("Users/" +
-                                              MyApp.documentId +
+                                              Body.docIdLocal +
                                               "/Tasks/" +
                                               document.id)
                                           .update({
