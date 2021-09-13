@@ -125,6 +125,7 @@ class _BodyState extends State<Body> {
     double windowHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       floatingActionButton: FloatingActionButton(
+        elevation: 10,
         onPressed: () {
           // showNotification();
           Navigator.push(
@@ -207,7 +208,7 @@ class _BodyState extends State<Body> {
               ),
             );
           } else {
-            return SafeArea(
+            return Container(
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
@@ -225,6 +226,14 @@ class _BodyState extends State<Body> {
                     SizedBox(
                       height: windowHeight * 0.01,
                     ),
+                    Text(
+                      'Next 7 Days',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     // Text(
                     //   '$completedTaskCount out of ${snapshot.data!.docs.length}',
                     //   style: TextStyle(
@@ -233,11 +242,11 @@ class _BodyState extends State<Body> {
                     //     fontWeight: FontWeight.w500,
                     //   ),
                     // ),
-                    SizedBox(
-                      height: windowHeight * 0.03,
-                    ),
+                    // SizedBox(
+                    //   height: windowHeight * 0.03,
+                    // ),
                     Expanded(
-                      child: Column(
+                      child: ListView(
                         children: snapshot.data!.docs
                             .map((DocumentSnapshot document) {
                           Map<String, dynamic> data =
@@ -248,112 +257,118 @@ class _BodyState extends State<Body> {
                           // if(data['Date'].toDate().isBefore(DateTime.now())){}
                           var diff =
                               data['Date'].toDate().difference(DateTime.now());
-                          print(diff.inMinutes);
+                          var a = diff
+                              .inDays; // use is for showing the task for next 7 days
                           return Column(
                             children: [
-                              ListTile(
-                                leading: data['Priority'] == 'High'
-                                    ? Text(
-                                        '!!!',
-                                        style: TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 25,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                    : data['Priority'] == 'Medium'
+                              if (a < 7)
+                                Card(
+                                  elevation: 0,
+                                  child: ListTile(
+                                    leading: data['Priority'] == 'High'
                                         ? Text(
-                                            '!!',
+                                            '!!!',
                                             style: TextStyle(
                                               color: Colors.red,
                                               fontSize: 25,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           )
-                                        : Text(
-                                            '!',
+                                        : data['Priority'] == 'Medium'
+                                            ? Text(
+                                                '!!',
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 25,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              )
+                                            : Text(
+                                                '!',
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 25,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                    isThreeLine: true,
+                                    title: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            data['Title'],
                                             style: TextStyle(
-                                              color: Colors.red,
-                                              fontSize: 25,
-                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              decoration:
+                                                  data['currentStatus'] == false
+                                                      ? TextDecoration.none
+                                                      : TextDecoration
+                                                          .lineThrough,
                                             ),
                                           ),
-                                isThreeLine: true,
-                                title: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        data['Title'],
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          decoration:
-                                              data['currentStatus'] == false
-                                                  ? TextDecoration.none
-                                                  : TextDecoration.lineThrough,
-                                        ),
-                                      ),
-                                      Text(
-                                        data['Description'],
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          decoration:
-                                              data['currentStatus'] == false
-                                                  ? TextDecoration.none
-                                                  : TextDecoration.lineThrough,
-                                        ),
-                                      ),
-                                      // if (data['Date']
-                                      //     .toDate()
-                                      //     .isBefore(DateTime.now()))
-                                      //   Text('Overdue'),
-                                    ]),
-                                subtitle: Text(
-                                  "$formattedDate * ${data['Priority']}",
-                                ),
-                                trailing: Checkbox(
-                                  checkColor: Colors.white,
-                                  activeColor: Colors.redAccent,
-                                  value: data['currentStatus'],
-                                  onChanged: (value) async {
-                                    setState(() {
-                                      data['currentStatus'] = value!;
-                                      _firestore
-                                          .doc("Users/" +
-                                              Body.docIdLocal +
-                                              "/Tasks/" +
-                                              document.id)
-                                          .update({
-                                            'currentStatus':
-                                                data['currentStatus']
-                                          })
-                                          .then((value) =>
-                                              print('Status updated'))
-                                          .catchError((error) => print(error));
-                                      getUpdatedTaskInfo();
-                                    });
-                                  },
-                                ),
-                                onTap: () {
-                                  setState(() {
-                                    Body.title = data['Title'];
-                                    Body.documentId = document.id;
-                                    Body.desc = data['Description'];
-                                    Body.priority = data['Priority'];
-                                    Body.date = DateTime.parse(
-                                        data['Date'].toDate().toString());
-                                  });
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => AddTask(),
+                                          Text(
+                                            data['Description'],
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              decoration:
+                                                  data['currentStatus'] == false
+                                                      ? TextDecoration.none
+                                                      : TextDecoration
+                                                          .lineThrough,
+                                            ),
+                                          ),
+                                          // if (data['Date']
+                                          //     .toDate()
+                                          //     .isBefore(DateTime.now()))
+                                          //   Text('Overdue'),
+                                        ]),
+                                    subtitle: Text(
+                                      "$formattedDate * ${data['Priority']}",
                                     ),
-                                  );
-                                },
-                              ),
-                              Divider(
-                                thickness: 1.2,
-                              ),
+                                    trailing: Checkbox(
+                                      checkColor: Colors.white,
+                                      activeColor: Colors.redAccent,
+                                      value: data['currentStatus'],
+                                      onChanged: (value) async {
+                                        setState(() {
+                                          data['currentStatus'] = value!;
+                                          _firestore
+                                              .doc("Users/" +
+                                                  Body.docIdLocal +
+                                                  "/Tasks/" +
+                                                  document.id)
+                                              .update({
+                                                'currentStatus':
+                                                    data['currentStatus']
+                                              })
+                                              .then((value) =>
+                                                  print('Status updated'))
+                                              .catchError(
+                                                  (error) => print(error));
+                                          getUpdatedTaskInfo();
+                                        });
+                                      },
+                                    ),
+                                    onTap: () {
+                                      setState(() {
+                                        Body.title = data['Title'];
+                                        Body.documentId = document.id;
+                                        Body.desc = data['Description'];
+                                        Body.priority = data['Priority'];
+                                        Body.date = DateTime.parse(
+                                            data['Date'].toDate().toString());
+                                      });
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => AddTask(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              if (a < 7) Divider(thickness: 1.5),
                             ],
                           );
                         }).toList(),
