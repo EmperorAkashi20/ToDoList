@@ -33,9 +33,6 @@ Future<void> main() async {
   MyApp.email = MyApp.prefs.getString('email') ?? '0';
   MyApp.documentId = MyApp.prefs.getString('docId') ?? '0';
   MyApp.userFirstName = MyApp.prefs.getString('userFirstName') ?? '0';
-  print(MyApp.email);
-  print(MyApp.documentId);
-  print(MyApp.userFirstName);
 
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
