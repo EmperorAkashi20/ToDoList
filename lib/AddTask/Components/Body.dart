@@ -84,7 +84,7 @@ class _AddTaskState extends State<AddTask> {
       print('Task Added');
       // widget.updateTaskList!();
 
-      Navigator.pop(context);
+      Get.back();
       Get.snackbar(title, 'Task Added');
     }).catchError((_) {
       print('Error');
@@ -104,7 +104,7 @@ class _AddTaskState extends State<AddTask> {
     }).then((value) {
       print('Status updated');
 
-      Navigator.pop(context);
+      Get.back();
       Get.snackbar(title, 'Task Updated');
     }).catchError((error) {
       print(error);
@@ -356,7 +356,7 @@ class _AddTaskState extends State<AddTask> {
                                     Body.date = DateTime.now();
                                     Body.desc = null;
                                     Body.documentId = null;
-                                    Navigator.pop(context);
+                                    Get.back();
                                     Get.snackbar(
                                       _title,
                                       'Task Deleted Successfully',

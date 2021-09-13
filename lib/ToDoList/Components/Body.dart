@@ -245,6 +245,10 @@ class _BodyState extends State<Body> {
                           DateFormat _dateFormat = DateFormat('y-MM-d');
                           String formattedDate =
                               _dateFormat.format(data['Date'].toDate());
+                          // if(data['Date'].toDate().isBefore(DateTime.now())){}
+                          var diff =
+                              data['Date'].toDate().difference(DateTime.now());
+                          print(diff.inMinutes);
                           return Column(
                             children: [
                               ListTile(
@@ -299,6 +303,10 @@ class _BodyState extends State<Body> {
                                                   : TextDecoration.lineThrough,
                                         ),
                                       ),
+                                      // if (data['Date']
+                                      //     .toDate()
+                                      //     .isBefore(DateTime.now()))
+                                      //   Text('Overdue'),
                                     ]),
                                 subtitle: Text(
                                   "$formattedDate * ${data['Priority']}",
@@ -332,7 +340,8 @@ class _BodyState extends State<Body> {
                                     Body.documentId = document.id;
                                     Body.desc = data['Description'];
                                     Body.priority = data['Priority'];
-                                    Body.date = DateTime.parse(formattedDate);
+                                    Body.date = DateTime.parse(
+                                        data['Date'].toDate().toString());
                                   });
                                   Navigator.push(
                                     context,
