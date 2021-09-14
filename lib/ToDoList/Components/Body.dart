@@ -47,6 +47,12 @@ class _BodyState extends State<Body> {
           playSound: true,
           icon: '@mipmap/ic_launcher',
         ),
+        iOS: IOSNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          subtitle: 'Data',
+        ),
       ),
     );
   }
@@ -88,6 +94,11 @@ class _BodyState extends State<Body> {
               playSound: true,
               icon: '@mipmap/ic_launcher',
             ),
+            iOS: IOSNotificationDetails(
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
+            ),
           ),
         );
       }
@@ -128,12 +139,7 @@ class _BodyState extends State<Body> {
         elevation: 10,
         onPressed: () {
           // showNotification();
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AddTask(),
-            ),
-          );
+          Get.to(() => AddTask());
         },
         backgroundColor: Colors.redAccent,
         child: Icon(Icons.add),

@@ -33,7 +33,7 @@ Future<void> main() async {
   MyApp.email = MyApp.prefs.getString('email') ?? '0';
   MyApp.documentId = MyApp.prefs.getString('docId') ?? '0';
   MyApp.userFirstName = MyApp.prefs.getString('userFirstName') ?? '0';
-
+  await init();
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -52,6 +52,23 @@ Future<void> main() async {
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]).then((_) {
     runApp(MyApp());
   });
+}
+
+Future<void> init() async {
+  const IOSInitializationSettings initializationSettingsIOS =
+      IOSInitializationSettings(
+    requestSoundPermission: true,
+    requestBadgePermission: true,
+    requestAlertPermission: true,
+    // onDidReceiveLocalNotification: onDidReceiveLocalNotification,
+  );
+
+  final InitializationSettings initializationSettings = InitializationSettings(
+      // android: initializationSettingsAndroid,
+      iOS: initializationSettingsIOS,
+      macOS: null);
+
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 }
 
 class MyApp extends StatelessWidget {
