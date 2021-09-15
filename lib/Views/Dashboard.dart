@@ -6,11 +6,13 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animations/loading_animations.dart';
-import 'package:todo/AddTask/AddTask.dart';
-import 'package:todo/Login.dart';
+import 'package:todo/Controllers/DashboardController.dart';
+import 'package:todo/Views/AddTask.dart';
+import 'package:todo/Controllers/LoginController.dart';
+import 'package:todo/Views/Login.dart';
 import 'package:todo/main.dart';
 
-class Body extends StatefulWidget {
+class Dashboard extends StatefulWidget {
   static var title;
   static var documentId;
   static var desc;
@@ -19,13 +21,12 @@ class Body extends StatefulWidget {
   static var docIdLocal;
   static var user;
 
-  const Body({Key? key}) : super(key: key);
-
   @override
-  _BodyState createState() => _BodyState();
+  _DashboardState createState() => _DashboardState();
 }
 
-class _BodyState extends State<Body> {
+class _DashboardState extends State<Dashboard> {
+  LoginController _loginController = Get.put(LoginController());
   final _firestore = FirebaseFirestore.instance;
   var loggedInUser;
   bool completed = false;
@@ -58,7 +59,7 @@ class _BodyState extends State<Body> {
 
   getUpdatedTaskInfo() {
     _firestore
-        .collection("Users/" + Body.docIdLocal + "/Tasks/")
+        .collection("Users/" + Dashboard.docIdLocal + "/Tasks/")
         .where('currentStatus', isEqualTo: true)
         .get()
         .then((value) {
@@ -69,12 +70,12 @@ class _BodyState extends State<Body> {
   @override
   void initState() {
     MyApp.documentId == '0'
-        ? Body.docIdLocal = LogInScreen.docId
-        : Body.docIdLocal = MyApp.documentId;
+        ? Dashboard.docIdLocal = _loginController.docId
+        : Dashboard.docIdLocal = MyApp.documentId;
 
     MyApp.userFirstName == '0'
-        ? Body.user = LogInScreen.name
-        : Body.user = MyApp.userFirstName;
+        ? Dashboard.user = _loginController.name
+        : Dashboard.user = MyApp.userFirstName;
     getUpdatedTaskInfo();
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
@@ -165,7 +166,7 @@ class _BodyState extends State<Body> {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
-            .collection('Users/' + Body.docIdLocal + '/Tasks')
+            .collection('Users/' + Dashboard.docIdLocal + '/Tasks')
             .orderBy('Date')
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -194,7 +195,7 @@ class _BodyState extends State<Body> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    Body.user + "'s Tasks",
+                    Dashboard.user + "'s Tasks",
                     style: TextStyle(
                       color: Colors.green.shade700,
                       fontSize: 30,
@@ -221,7 +222,7 @@ class _BodyState extends State<Body> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      Body.user + "'s Tasks",
+                      Dashboard.user + "'s Tasks",
                       style: TextStyle(
                         color: Colors.green.shade700,
                         fontSize: 30,
@@ -340,7 +341,7 @@ class _BodyState extends State<Body> {
                                           data['currentStatus'] = value!;
                                           _firestore
                                               .doc("Users/" +
-                                                  Body.docIdLocal +
+                                                  Dashboard.docIdLocal +
                                                   "/Tasks/" +
                                                   document.id)
                                               .update({
@@ -357,11 +358,11 @@ class _BodyState extends State<Body> {
                                     ),
                                     onTap: () {
                                       setState(() {
-                                        Body.title = data['Title'];
-                                        Body.documentId = document.id;
-                                        Body.desc = data['Description'];
-                                        Body.priority = data['Priority'];
-                                        Body.date = DateTime.parse(
+                                        Dashboard.title = data['Title'];
+                                        Dashboard.documentId = document.id;
+                                        Dashboard.desc = data['Description'];
+                                        Dashboard.priority = data['Priority'];
+                                        Dashboard.date = DateTime.parse(
                                             data['Date'].toDate().toString());
                                       });
                                       Navigator.push(

@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:todo/Controllers/SignUpController.dart';
 
 import '../Theme.dart';
 
 class SignUpForm extends StatefulWidget {
-  static String? email;
-  static String? firstName;
-  static String? lastName;
-  static String? phone;
-  static String? password;
-  static String? confirmPassword;
   @override
   _SignUpFormState createState() => _SignUpFormState();
 }
 
 class _SignUpFormState extends State<SignUpForm> {
+  SignUpController _signUpController = Get.find();
   bool _isObscure = true;
   @override
   Widget build(BuildContext context) {
@@ -34,7 +31,7 @@ class _SignUpFormState extends State<SignUpForm> {
         padding: EdgeInsets.symmetric(vertical: 5),
         child: TextFormField(
           onChanged: (value) {
-            SignUpForm.password = value;
+            _signUpController.password = value;
           },
           obscureText: pass ? _isObscure : false,
           decoration: InputDecoration(
@@ -68,7 +65,7 @@ class _SignUpFormState extends State<SignUpForm> {
         padding: EdgeInsets.symmetric(vertical: 5),
         child: TextFormField(
           onChanged: (value) {
-            SignUpForm.confirmPassword = value;
+            _signUpController.confirmPassword = value;
           },
           obscureText: pass ? _isObscure : false,
           decoration: InputDecoration(
@@ -103,7 +100,7 @@ class _SignUpFormState extends State<SignUpForm> {
         child: TextFormField(
           keyboardType: TextInputType.emailAddress,
           onChanged: (value) {
-            SignUpForm.email = value;
+            _signUpController.email = value;
           },
           decoration: InputDecoration(
             hintText: hint,
@@ -120,7 +117,7 @@ class _SignUpFormState extends State<SignUpForm> {
         child: TextFormField(
           keyboardType: TextInputType.name,
           onChanged: (value) {
-            SignUpForm.firstName = value;
+            _signUpController.firstName = value;
           },
           decoration: InputDecoration(
             hintText: hint,
@@ -137,7 +134,7 @@ class _SignUpFormState extends State<SignUpForm> {
         child: TextFormField(
           keyboardType: TextInputType.name,
           onChanged: (value) {
-            SignUpForm.lastName = value;
+            _signUpController.lastName = value;
           },
           decoration: InputDecoration(
             hintText: hint,
@@ -154,7 +151,7 @@ class _SignUpFormState extends State<SignUpForm> {
         child: TextFormField(
           keyboardType: TextInputType.phone,
           onChanged: (value) {
-            SignUpForm.phone = value;
+            _signUpController.phone = value;
           },
           decoration: InputDecoration(
             hintText: hint,

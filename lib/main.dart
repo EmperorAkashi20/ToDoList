@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:todo/Login.dart';
-import 'package:todo/ToDoList/TodoList.dart';
+import 'package:todo/Views/Dashboard.dart';
+import 'package:todo/Views/Login.dart';
 import 'package:get/get.dart';
 
 GlobalKey globalKey = GlobalKey();
@@ -81,7 +81,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       theme: ThemeData(fontFamily: "Nunito"),
       debugShowCheckedModeBanner: false,
-      home: MyApp.email == '0' ? LogInScreen() : ToDoList(),
+      home: MyApp.email == '0' ? LogInScreen() : Dashboard(),
     );
   }
 }

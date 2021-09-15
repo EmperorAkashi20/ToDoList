@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:todo/Controllers/LoginController.dart';
 
 import '../Theme.dart';
 
 class LogInForm extends StatefulWidget {
-  static String? email;
-  static String? password;
   @override
   _LogInFormState createState() => _LogInFormState();
 }
 
 class _LogInFormState extends State<LogInForm> {
+  LoginController _loginController = Get.find();
   bool _isObscure = true;
 
   @override
@@ -27,7 +28,7 @@ class _LogInFormState extends State<LogInForm> {
       padding: EdgeInsets.symmetric(vertical: 5),
       child: TextFormField(
         onChanged: (value) {
-          LogInForm.password = value;
+          _loginController.password = value;
         },
         obscureText: pass ? _isObscure : false,
         decoration: InputDecoration(
@@ -66,7 +67,7 @@ class _LogInFormState extends State<LogInForm> {
       child: TextFormField(
         keyboardType: TextInputType.emailAddress,
         onChanged: (value) {
-          LogInForm.email = value;
+          _loginController.email = value;
         },
         decoration: InputDecoration(
           labelText: label,

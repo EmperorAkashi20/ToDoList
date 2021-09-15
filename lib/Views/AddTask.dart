@@ -3,11 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:todo/ToDoList/Components/Body.dart';
 import 'package:get/get.dart';
-import 'package:todo/main.dart';
-
-import '../../Login.dart';
+import 'package:todo/Views/Dashboard.dart';
 
 class AddTask extends StatefulWidget {
   static String routeName = '/addTask';
@@ -94,7 +91,7 @@ class _AddTaskState extends State<AddTask> {
   updateTake(String title, String desc, DateTime date, String priority,
       bool completed) {
     _firestore
-        .doc("Users/" + Body.docIdLocal + "/Tasks/" + Body.documentId)
+        .doc("Users/" + Dashboard.docIdLocal + "/Tasks/" + Dashboard.documentId)
         .update({
       "Title": title,
       "Description": desc,
@@ -113,11 +110,11 @@ class _AddTaskState extends State<AddTask> {
 
   @override
   void initState() {
-    if (Body.documentId != null) {
-      _title = Body.title;
-      _desc = Body.desc;
-      _date = Body.date;
-      _priority = Body.priority;
+    if (Dashboard.documentId != null) {
+      _title = Dashboard.title;
+      _desc = Dashboard.desc;
+      _date = Dashboard.date;
+      _priority = Dashboard.priority;
     }
     _dateController.text = _dateFormatter.format(_date);
 
@@ -144,10 +141,10 @@ class _AddTaskState extends State<AddTask> {
             color: Colors.black,
             onPressed: () {
               setState(() {
-                Body.title = null;
-                Body.date = DateTime.now();
-                Body.desc = null;
-                Body.documentId = null;
+                Dashboard.title = null;
+                Dashboard.date = DateTime.now();
+                Dashboard.desc = null;
+                Dashboard.documentId = null;
                 Navigator.pop(context);
               });
             },
@@ -166,7 +163,7 @@ class _AddTaskState extends State<AddTask> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    Body.documentId == null ? 'Add A Task' : 'Update Task',
+                    Dashboard.documentId == null ? 'Add A Task' : 'Update Task',
                     style: TextStyle(
                       color: Colors.green.shade700,
                       fontSize: 40,
@@ -302,16 +299,16 @@ class _AddTaskState extends State<AddTask> {
                               taskId = (titleTask + time).toString();
                               AddTask.showSpinner = true;
                             });
-                            Body.documentId == null
-                                ? await addTask(Body.docIdLocal, _title, _desc,
-                                    _date, _priority, false, taskId)
+                            Dashboard.documentId == null
+                                ? await addTask(Dashboard.docIdLocal, _title,
+                                    _desc, _date, _priority, false, taskId)
                                 : await updateTake(
                                     _title, _desc, _date, _priority, false);
                             setState(() {
-                              Body.title = null;
-                              Body.date = DateTime.now();
-                              Body.desc = null;
-                              Body.documentId = null;
+                              Dashboard.title = null;
+                              Dashboard.date = DateTime.now();
+                              Dashboard.desc = null;
+                              Dashboard.documentId = null;
                               AddTask.showSpinner = false;
                             });
                           },
@@ -324,7 +321,7 @@ class _AddTaskState extends State<AddTask> {
                             ),
                             child: Center(
                               child: Text(
-                                Body.documentId == null
+                                Dashboard.documentId == null
                                     ? 'Add Task'
                                     : 'Update Task',
                                 style: TextStyle(
@@ -339,23 +336,23 @@ class _AddTaskState extends State<AddTask> {
                         SizedBox(
                           height: windowHeight * 0.03,
                         ),
-                        Body.documentId == null
+                        Dashboard.documentId == null
                             ? SizedBox.shrink()
                             : GestureDetector(
                                 onTap: () {
                                   _firestore
                                       .doc("Users/" +
-                                          Body.docIdLocal +
+                                          Dashboard.docIdLocal +
                                           "/Tasks/" +
-                                          Body.documentId)
+                                          Dashboard.documentId)
                                       .delete()
                                       .then((value) => print('Deleted'))
                                       .catchError((error) => print(error));
                                   setState(() {
-                                    Body.title = null;
-                                    Body.date = DateTime.now();
-                                    Body.desc = null;
-                                    Body.documentId = null;
+                                    Dashboard.title = null;
+                                    Dashboard.date = DateTime.now();
+                                    Dashboard.desc = null;
+                                    Dashboard.documentId = null;
                                     Get.back();
                                     Get.snackbar(
                                       _title,
