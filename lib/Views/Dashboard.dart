@@ -1,135 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animations/loading_animations.dart';
+import 'package:todo/CollectionNames.dart';
 import 'package:todo/Controllers/DashboardController.dart';
 import 'package:todo/Views/AddTask.dart';
-import 'package:todo/Controllers/LoginController.dart';
-import 'package:todo/Views/Login.dart';
-import 'package:todo/main.dart';
 
 class Dashboard extends StatefulWidget {
-  static var title;
-  static var documentId;
-  static var desc;
-  static var date;
-  static var priority;
-  static var docIdLocal;
-  static var user;
-
   @override
   _DashboardState createState() => _DashboardState();
 }
 
 class _DashboardState extends State<Dashboard> {
-  LoginController _loginController = Get.put(LoginController());
-  final _firestore = FirebaseFirestore.instance;
-  var loggedInUser;
-  bool completed = false;
-  int completedTaskCount = 0;
-
-  void showNotification() {
-    flutterLocalNotificationsPlugin.show(
-      0,
-      "Testing",
-      "Test going well",
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          channel.id,
-          channel.name,
-          channel.description,
-          importance: Importance.high,
-          color: Colors.blue,
-          playSound: true,
-          icon: '@mipmap/ic_launcher',
-        ),
-        iOS: IOSNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-          subtitle: 'Data',
-        ),
-      ),
-    );
-  }
-
-  getUpdatedTaskInfo() {
-    _firestore
-        .collection("Users/" + Dashboard.docIdLocal + "/Tasks/")
-        .where('currentStatus', isEqualTo: true)
-        .get()
-        .then((value) {
-      completedTaskCount = value.size;
-    });
-  }
-
-  @override
-  void initState() {
-    MyApp.documentId == '0'
-        ? Dashboard.docIdLocal = _loginController.docId
-        : Dashboard.docIdLocal = MyApp.documentId;
-
-    MyApp.userFirstName == '0'
-        ? Dashboard.user = _loginController.name
-        : Dashboard.user = MyApp.userFirstName;
-    getUpdatedTaskInfo();
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
-      if (notification != null && android != null) {
-        flutterLocalNotificationsPlugin.show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
-          NotificationDetails(
-            android: AndroidNotificationDetails(
-              channel.id,
-              channel.name,
-              channel.description,
-              color: Colors.blue,
-              playSound: true,
-              icon: '@mipmap/ic_launcher',
-            ),
-            iOS: IOSNotificationDetails(
-              presentAlert: true,
-              presentBadge: true,
-              presentSound: true,
-            ),
-          ),
-        );
-      }
-    });
-
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('New event');
-      RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
-      if (notification != null && android != null) {
-        showDialog(
-            context: context,
-            builder: (_) {
-              return AlertDialog(
-                title: Text(notification.title.toString()),
-                content: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        notification.body.toString(),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            });
-      }
-    });
-    super.initState();
-  }
+  DashboardController _dashboardController = Get.put(DashboardController());
 
   @override
   Widget build(BuildContext context) {
@@ -149,24 +33,17 @@ class _DashboardState extends State<Dashboard> {
         backgroundColor: Colors.transparent,
         actions: [
           IconButton(
-            onPressed: () async {
-              await MyApp.prefs.remove("email");
-              await MyApp.prefs.remove("docId");
-              await MyApp.prefs.remove("userFirstName");
-              await FirebaseAuth.instance.signOut();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (BuildContext context) => LogInScreen(),
-                ),
-              );
+            onPressed: () {
+              _dashboardController.onLogout();
             },
             icon: Icon(Icons.power_settings_new, color: Colors.black),
           ),
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore
-            .collection('Users/' + Dashboard.docIdLocal + '/Tasks')
+        stream: _dashboardController.firestore
+            .collection(
+                '$collectionUser/' + _dashboardController.docIdLocal + '/Tasks')
             .orderBy('Date')
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -195,7 +72,7 @@ class _DashboardState extends State<Dashboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    Dashboard.user + "'s Tasks",
+                    _dashboardController.user + "'s Tasks",
                     style: TextStyle(
                       color: Colors.green.shade700,
                       fontSize: 30,
@@ -222,7 +99,7 @@ class _DashboardState extends State<Dashboard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      Dashboard.user + "'s Tasks",
+                      _dashboardController.user + "'s Tasks",
                       style: TextStyle(
                         color: Colors.green.shade700,
                         fontSize: 30,
@@ -339,9 +216,9 @@ class _DashboardState extends State<Dashboard> {
                                       onChanged: (value) async {
                                         setState(() {
                                           data['currentStatus'] = value!;
-                                          _firestore
-                                              .doc("Users/" +
-                                                  Dashboard.docIdLocal +
+                                          _dashboardController.firestore
+                                              .doc("$collectionUser/" +
+                                                  _dashboardController.user +
                                                   "/Tasks/" +
                                                   document.id)
                                               .update({
@@ -352,25 +229,27 @@ class _DashboardState extends State<Dashboard> {
                                                   print('Status updated'))
                                               .catchError(
                                                   (error) => print(error));
-                                          getUpdatedTaskInfo();
+                                          _dashboardController
+                                              .getUpdatedTaskInfo();
                                         });
                                       },
                                     ),
                                     onTap: () {
                                       setState(() {
-                                        Dashboard.title = data['Title'];
-                                        Dashboard.documentId = document.id;
-                                        Dashboard.desc = data['Description'];
-                                        Dashboard.priority = data['Priority'];
-                                        Dashboard.date = DateTime.parse(
-                                            data['Date'].toDate().toString());
+                                        _dashboardController.title =
+                                            data['Title'];
+                                        _dashboardController.documentId =
+                                            document.id;
+                                        _dashboardController.desc =
+                                            data['Description'];
+                                        _dashboardController.priority =
+                                            data['Priority'];
+                                        _dashboardController.date =
+                                            DateTime.parse(data['Date']
+                                                .toDate()
+                                                .toString());
                                       });
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => AddTask(),
-                                        ),
-                                      );
+                                      Get.to(() => AddTask());
                                     },
                                   ),
                                 ),

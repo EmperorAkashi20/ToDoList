@@ -3,17 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_state_manager/get_state_manager.dart';
+import 'package:todo/CollectionNames.dart';
 import 'package:todo/Controllers/LoginController.dart';
 import 'package:todo/Views/Dashboard.dart';
 
 import '../main.dart';
-
-@override
-extension StringExtension on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${this.substring(1)}";
-  }
-}
 
 class SignUpController extends GetxController {
   final LoginController _loginController = Get.find();
@@ -31,7 +25,7 @@ class SignUpController extends GetxController {
       final user = _auth.currentUser;
       if (user != null) {
         await _firestore
-            .collection('Users')
+            .collection(collectionUser)
             .where('Email', isEqualTo: email)
             .get()
             .then((QuerySnapshot querySnapshot) {
@@ -61,7 +55,7 @@ class SignUpController extends GetxController {
       var b = lastName[0].toUpperCase() + lastName.substring(1);
       print(a);
       print(b);
-      await _firestore.collection('Users').add({
+      await _firestore.collection(collectionUser).add({
         'Email': email,
         'First Name': a,
         'Last Name': b,
@@ -71,8 +65,8 @@ class SignUpController extends GetxController {
       await getCurrentUser();
       await MyApp.prefs.setString('email', email);
       await MyApp.prefs.setString('docId', _loginController.docId);
-
       Get.offAll(() => Dashboard());
+      print(_loginController.docId);
     } catch (e) {
       print(e);
     }

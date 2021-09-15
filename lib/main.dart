@@ -30,9 +30,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MyApp.prefs = await SharedPreferences.getInstance();
-  MyApp.email = MyApp.prefs.getString('email') ?? '0';
-  MyApp.documentId = MyApp.prefs.getString('docId') ?? '0';
-  MyApp.userFirstName = MyApp.prefs.getString('userFirstName') ?? '0';
+  MyApp.email = MyApp.prefs.getString('email') ?? null;
+  MyApp.documentId = MyApp.prefs.getString('docId') ?? null;
+  MyApp.userFirstName = MyApp.prefs.getString('userFirstName') ?? null;
   await init();
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -81,7 +81,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       theme: ThemeData(fontFamily: "Nunito"),
       debugShowCheckedModeBanner: false,
-      home: MyApp.email == '0' ? LogInScreen() : Dashboard(),
+      home: MyApp.email == null ? LogInScreen() : Dashboard(),
     );
   }
 }
