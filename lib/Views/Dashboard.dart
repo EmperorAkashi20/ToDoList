@@ -218,7 +218,8 @@ class _DashboardState extends State<Dashboard> {
                                           data['currentStatus'] = value!;
                                           _dashboardController.firestore
                                               .doc("$collectionUser/" +
-                                                  _dashboardController.user +
+                                                  _dashboardController
+                                                      .docIdLocal +
                                                   "/Tasks/" +
                                                   document.id)
                                               .update({
