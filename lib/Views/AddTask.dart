@@ -6,9 +6,6 @@ import 'package:todo/Controllers/AddUpdateTaskController.dart';
 import 'package:todo/Controllers/DashboardController.dart';
 
 class AddTask extends StatefulWidget {
-  static String routeName = '/addTask';
-
-  static bool showSpinner = false;
   const AddTask({
     Key? key,
   }) : super(key: key);
@@ -207,9 +204,7 @@ class _AddTaskState extends State<AddTask> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                         ),
-                        validator: (input) => _taskController.priority == null
-                            ? 'Please select a priority level'
-                            : null,
+                        validator: (input) => 'Please select a priority level',
                         onChanged: (value) {
                           setState(() {
                             _taskController.priority = value.toString();

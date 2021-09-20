@@ -19,12 +19,6 @@ class LoginController extends GetxController {
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
 
-  @override
-  //TODO
-  void onInit() {
-    super.onInit();
-  }
-
   onTapForgotPassword() {
     Get.to(() => ResetPasswordScreen());
   }
